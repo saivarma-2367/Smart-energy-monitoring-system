@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- ================= HEADER ================= -->
+<div class="mb-6">
+  <h2 class="text-xl font-semibold flex items-center gap-2">
+    <i data-lucide="activity" class="w-5 h-5 text-primary"></i>
+    Live Energy Overview
+  </h2>
+  <p class="text-slate-400 text-sm">
+    Last updated: <span id="updated">--</span>
+  </p>
+</div>
+
+<!-- ================= STATUS CARDS ================= -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+
+  <div class="bg-card rounded-2xl p-5 shadow border border-slate-800">
+    <p class="text-slate-400 text-sm">Status</p>
+    <h3 id="status" class="text-lg font-semibold mt-1">--</h3>
+  </div>
+
+  <div class="bg-card rounded-2xl p-5 shadow border border-slate-800">
+    <p class="text-slate-400 text-sm">Severity</p>
+    <h3 id="severity" class="text-lg font-semibold mt-1">--</h3>
+  </div>
+
+  <div class="bg-card rounded-2xl p-5 shadow border border-slate-800">
+    <p class="text-slate-400 text-sm">Dominant Load</p>
+    <h3 id="dominant" class="text-lg font-semibold mt-1">--</h3>
+  </div>
+
+  <div class="bg-card rounded-2xl p-5 shadow border border-slate-800">
+    <p class="text-slate-400 text-sm">Action</p>
+    <h3 id="action" class="text-lg font-semibold mt-1">—</h3>
+  </div>
+
+  <div class="bg-card rounded-2xl p-5 shadow border border-slate-800">
+    <p class="text-slate-400 text-sm">Recommended Shift Hour</p>
+    <h3 id="shiftHour" class="text-lg font-semibold mt-1 text-yellow-400">
+      —
+    </h3>
+  </div>
+
+</div>
+
+<!-- ================= LAST 5 READINGS ================= -->
+<div class="bg-card rounded-2xl p-6 shadow border border-slate-800">
+
+  <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+    <i data-lucide="clock" class="w-5 h-5 text-primary"></i>
+    Last 5 Readings
+  </h3>
+
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm border-collapse">
+      <thead>
+        <tr class="text-slate-400 border-b border-slate-700">
+          <th class="text-left py-2">Time</th>
+          <th class="text-left py-2">Kitchen</th>
+          <th class="text-left py-2">HVAC</th>
+          <th class="text-left py-2">Laundry</th>
+          <th class="text-left py-2">Electronics</th>
+          <th class="text-left py-2">Status</th>
+          <th class="text-left py-2">Severity</th>
+        </tr>
+      </thead>
+
+      <tbody id="historyTable" class="divide-y divide-slate-800">
+        <tr>
+          <td colspan="7" class="py-4 text-slate-400 text-center">
+            Waiting for data...
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- ================= SCRIPT ================= -->
+<script>
+const statusEl   = document.getElementById("status");
+const severityEl = document.getElementById("severity");
+const dominantEl = document.getElementById("dominant");
+const actionEl   = document.getElementById("action");
+const updatedEl  = document.getElementById("updated");
+const tableBody  = document.getElementById("historyTable");
+const shiftHourEl = document.getElementById("shiftHour");
+
+
+function safeValue(v) {
+  return v !== null && v !== undefined ? v.toFixed(1) : "-";
+}
+
+function refreshDashboard() {
+
+  /* ===== LATEST STATUS ===== */
+  fetch("/api/latest", { cache: "no-store" })
+    .then(r => r.json())
+    .then(d => {
+      if (!d || !d.timestamp) return;
+
+      statusEl.textContent = d.status ?? "UNKNOWN";
+
+      severityEl.textContent = d.severity ?? "INFO";
+      severityEl.className =
+        "text-lg font-semibold mt-1 " +
+        (d.severity === "CRITICAL" || d.severity === "WARNING"
+          ? "text-red-400"
+          : "text-green-400");
+
+      dominantEl.textContent = d.dominant_load ?? "--";
+
+      // Action logic
+actionEl.textContent =
+  (d.status === "HIGH_LOAD" || d.status === "OVERLOAD")
+    ? (d.action ?? "—")
+    : "—";
+
+// 🔥 Recommended hour logic
+if (d.status === "HIGH_LOAD" || d.status === "OVERLOAD") {
+  shiftHourEl.textContent =
+    d.recommended_hour !== null && d.recommended_hour !== undefined
+      ? d.recommended_hour + ":00"
+      : "—";
+} else {
+  shiftHourEl.textContent = "—";
+}
+
+
+      updatedEl.textContent =
+        new Date(d.timestamp).toLocaleTimeString();
+    })
+    .catch(err => console.error("Latest API error:", err));
+
+  /* ===== LAST 5 READINGS ===== */
+  fetch("/api/history_full", { cache: "no-store" })
+    .then(r => r.json())
+    .then(rows => {
+      tableBody.innerHTML = "";
+
+      if (!rows || rows.length === 0) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="7"
+                class="py-4 text-center text-slate-400">
+              No data available
+            </td>
+          </tr>`;
+        return;
+      }
+
+      rows.forEach(r => {
+        const sevClass =
+          r.severity === "CRITICAL" || r.severity === "WARNING"
+            ? "text-red-400 font-semibold"
+            : "text-green-400 font-semibold";
+
+        tableBody.innerHTML += `
+          <tr class="hover:bg-slate-800 transition">
+            <td class="py-2">
+              ${new Date(r.time).toLocaleTimeString()}
+            </td>
+            <td>${safeValue(r.sub_kitchen)}</td>
+            <td>${safeValue(r.sub_hvac)}</td>
+            <td>${safeValue(r.sub_laundry)}</td>
+            <td>${safeValue(r.sub_electronics)}</td>
+            <td class="font-medium">${r.status}</td>
+            <td class="${sevClass}">${r.severity}</td>
+          </tr>`;
+      });
+    })
+    .catch(err => {
+      console.error("History API error:", err);
+      tableBody.innerHTML = `
+        <tr>
+          <td colspan="7"
+              class="py-4 text-center text-red-400">
+            Error loading data
+          </td>
+        </tr>`;
+    });
+}
+
+refreshDashboard();
+setInterval(refreshDashboard, 5000);
+</script>
+
+{% endblock %}

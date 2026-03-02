@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Back -->
+<a href="/devices" class="text-primary hover:opacity-80 transition mb-4 inline-block">
+  ← Back to Sub-Meters
+</a>
+
+<!-- Header -->
+<h2 class="text-xl font-semibold flex items-center gap-2 mb-6">
+  <i data-lucide="zap" class="w-5 h-5 text-primary"></i>
+  {{ name|capitalize }} Sub-Meter
+</h2>
+
+<!-- Overview Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+
+  <div class="bg-card rounded-2xl p-5 border border-slate-800 shadow">
+    <p class="text-slate-400 text-sm">Current Load</p>
+    <h3 class="text-2xl font-semibold mt-1">
+      <span id="currentLoad">--</span> <span class="text-sm">W</span>
+    </h3>
+  </div>
+
+  <div class="bg-card rounded-2xl p-5 border border-slate-800 shadow">
+    <p class="text-slate-400 text-sm">Expected Load</p>
+    <h3 class="text-2xl font-semibold mt-1">
+      <span id="expectedLoad">--</span> <span class="text-sm">W</span>
+    </h3>
+  </div>
+
+  <div class="bg-card rounded-2xl p-5 border border-slate-800 shadow">
+    <p class="text-slate-400 text-sm">Status</p>
+    <h3 id="deviceStatus" class="text-xl font-semibold mt-1">
+      --
+    </h3>
+  </div>
+
+  <div class="bg-card rounded-2xl p-5 border border-slate-800 shadow">
+    <p class="text-slate-400 text-sm">Action</p>
+    <h3 id="deviceAction" class="text-sm mt-2">
+      --
+    </h3>
+  </div>
+
+</div>
+
+<!-- Appliances -->
+<div class="bg-card rounded-2xl p-6 border border-slate-800 shadow mb-10">
+  <h3 class="text-lg font-semibold flex items-center gap-2 mb-4">
+    <i data-lucide="cpu" class="w-5 h-5 text-primary"></i>
+    Connected Appliances
+  </h3>
+
+  <ul class="grid grid-cols-1 md:grid-cols-2 gap-3 text-slate-300">
+    {% for a in appliances %}
+      <li class="flex items-center gap-2">
+        <i data-lucide="plug" class="w-4 h-4 text-slate-400"></i>
+        {{ a }}
+      </li>
+    {% endfor %}
+  </ul>
+</div>
+
+<!-- Chart -->
+<div class="bg-card rounded-2xl p-6 border border-slate-800 shadow">
+  <h3 class="text-lg font-semibold flex items-center gap-2 mb-4">
+    <i data-lucide="line-chart" class="w-5 h-5 text-primary"></i>
+    Last 1 Hour Load Trend
+  </h3>
+
+  <canvas id="chart" height="120"></canvas>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+let chartInstance = null;
+
+// 📊 Graph refresh
+function refreshDeviceChart() {
+  fetch("/api/history/{{ name }}", { cache: "no-store" })
+    .then(r => r.json())
+    .then(data => {
+      const lastHour = data.slice(-720);
+
+      const labels = lastHour.map(x =>
+        new Date(x.time).toLocaleTimeString()
+      );
+      const values = lastHour.map(x => x.value);
+
+      if (chartInstance) chartInstance.destroy();
+
+      chartInstance = new Chart(document.getElementById("chart"), {
+        type: "line",
+        data: {
+          labels,
+          datasets: [{
+            data: values,
+            borderColor: "#38bdf8",
+            backgroundColor: "rgba(56,189,248,0.15)",
+            tension: 0.35,
+            pointRadius: 0,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: "#94a3b8" } },
+            y: { ticks: { color: "#94a3b8" } }
+          }
+        }
+      });
+    });
+}
+
+// 📡 Device stats refresh
+function refreshDeviceStats() {
+  fetch("/api/latest", { cache: "no-store" })
+    .then(r => r.json())
+    .then(d => {
+      if (!d || !d.status) return;
+
+      document.getElementById("currentLoad").textContent =
+        d.current_load ?? "--";
+
+      document.getElementById("expectedLoad").textContent =
+        d.avg_expected_load ?? "--";
+
+      const statusEl = document.getElementById("deviceStatus");
+      statusEl.textContent = d.status;
+
+      statusEl.className =
+        "text-xl font-semibold mt-1 " +
+        (d.status === "NORMAL"
+          ? "text-green-400"
+          : d.status === "HIGH_LOAD"
+          ? "text-amber-400"
+          : "text-red-400");
+
+      document.getElementById("deviceAction").textContent =
+        (d.status === "HIGH_LOAD" || d.status === "OVERLOAD")
+          ? `${d.action} @ ${d.recommended_hour}:00`
+          : "No action required";
+    });
+}
+
+// ⏱ Auto refresh
+setInterval(() => {
+  refreshDeviceChart();
+  refreshDeviceStats();
+}, 5000);
+
+// Initial load
+refreshDeviceChart();
+refreshDeviceStats();
+</script>
+
+{% endblock %}

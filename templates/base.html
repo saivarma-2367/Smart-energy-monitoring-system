@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Energy Efficiency Optimization</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide Icons (modern & clean) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: "#38bdf8",
+            panel: "#020617",
+            card: "#0f172a",
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="bg-slate-900 text-white antialiased">
+
+<div class="flex min-h-screen">
+
+  <!-- SIDEBAR -->
+  <aside class="w-64 bg-panel border-r border-slate-800 p-6 flex flex-col">
+
+    <!-- Logo -->
+    <div class="flex items-center gap-2 mb-8">
+      <i data-lucide="zap" class="w-6 h-6 text-primary"></i>
+      <h1 class="text-lg font-bold text-primary">Energy AI</h1>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex flex-col gap-2 text-sm">
+
+      <!-- Dashboard -->
+      <a href="/"
+         class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl transition
+                {% if request.path == '/' %}
+                  bg-slate-800 text-primary shadow
+                {% else %}
+                  text-slate-300 hover:bg-slate-800 hover:text-white
+                {% endif %}">
+        <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+        Dashboard
+      </a>
+
+      <!-- Sub-Meters -->
+      <a href="/devices"
+         class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl transition
+                {% if request.path.startswith('/device') or request.path == '/devices' %}
+                  bg-slate-800 text-primary shadow
+                {% else %}
+                  text-slate-300 hover:bg-slate-800 hover:text-white
+                {% endif %}">
+        <i data-lucide="plug" class="w-5 h-5"></i>
+        Sub-Meters
+      </a>
+
+      <!-- Recommendations -->
+      <a href="/recommendations"
+         class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl transition
+                {% if request.path == '/recommendations' %}
+                  bg-slate-800 text-primary shadow
+                {% else %}
+                  text-slate-300 hover:bg-slate-800 hover:text-white
+                {% endif %}">
+        <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+        Recommendations
+      </a>
+
+      <!-- Profile -->
+      <a href="/profile"
+         class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl transition
+                {% if request.path == '/profile' %}
+                  bg-slate-800 text-primary shadow
+                {% else %}
+                  text-slate-300 hover:bg-slate-800 hover:text-white
+                {% endif %}">
+        <i data-lucide="user" class="w-5 h-5"></i>
+        Profile
+      </a>
+
+    </nav>
+
+    <!-- Footer -->
+    <div class="mt-auto pt-6 text-xs text-slate-500">
+      © Energy Optimization System
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+    <main class="flex-1 p-6 bg-slate-900">
+
+    <!-- MAIN PANEL -->
+    <div class="
+        h-full
+        rounded-3xl
+        border border-slate-800
+        bg-gradient-to-br from-slate-900/90 to-slate-800/90
+        shadow-2xl
+        backdrop-blur
+        overflow-hidden
+    ">
+
+        <!-- TOP BAR (like sidebar style) -->
+        <div class="
+        px-8 py-5
+        border-b border-slate-800
+        bg-slate-900/80
+        flex items-center justify-between
+        ">
+        <div>
+            <h2 class="text-xl font-semibold tracking-tight">
+            Energy Efficiency Optimization System
+            </h2>
+            <p class="text-slate-400 text-sm mt-1">
+            Real-time energy monitoring & AI-based optimization
+            </p>
+        </div>
+
+        <!-- Optional status dot -->
+        <div class="flex items-center gap-2 text-xs text-slate-400">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            Live
+        </div>
+        </div>
+
+        <!-- PAGE CONTENT -->
+        <div class="p-8 animate-fadeIn">
+        {% block content %}
+        {% endblock %}
+        </div>
+
+    </div>
+
+    </main>
+
+</div>
+
+<!-- Lucide icon loader -->
+<script>
+  lucide.createIcons();
+</script>
+<script src="{{ url_for('static', filename='js/live.js') }}"></script>
+<!-- Smooth page animation -->
+<style>
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fadeIn {
+    animation: fadeIn 0.3s ease-out;
+  }
+</style>
+
+</body>
+</html>

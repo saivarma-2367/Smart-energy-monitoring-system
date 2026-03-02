@@ -1,0 +1,125 @@
+[
+    {
+        "id": "63975b8ff5c865ae",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "eb1c77c8c8f85766",
+        "type": "inject",
+        "z": "63975b8ff5c865ae",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "5",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "0.5",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 170,
+        "y": 320,
+        "wires": [
+            [
+                "97cc0e07434eb21e"
+            ]
+        ]
+    },
+    {
+        "id": "97cc0e07434eb21e",
+        "type": "function",
+        "z": "63975b8ff5c865ae",
+        "name": "function 1",
+        "func": "// Fake electricity sensor data\n\nlet voltage = 220 + Math.random() * 10;     // 220–230 V\nlet power = 300 + Math.random() * 2700;     // 300–3000 W\nlet current = power / voltage;              // I = P / V\nlet temperature = 25 + Math.random() * 20;  // 25–45 °C\n\nmsg.payload = {\n    deviceId: \"virtual_meter_01\",\n    voltage: voltage.toFixed(2),\n    power: power.toFixed(2),\n    current: current.toFixed(2),\n    temperature: temperature.toFixed(2),\n    timestamp: new Date().toISOString()\n};\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 360,
+        "y": 320,
+        "wires": [
+            [
+                "447e27f066681064"
+            ]
+        ]
+    },
+    {
+        "id": "fada981f67222d1e",
+        "type": "debug",
+        "z": "63975b8ff5c865ae",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 660,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "447e27f066681064",
+        "type": "mqtt out",
+        "z": "63975b8ff5c865ae",
+        "name": "",
+        "topic": "energy/virtual_meter_01",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "600b8513c4a21869",
+        "x": 650,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "600b8513c4a21869",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "localhost",
+        "port": 1883,
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    }
+]

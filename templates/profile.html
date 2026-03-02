@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="mb-8">
+  <h2 class="text-xl font-semibold flex items-center gap-2">
+    <i data-lucide="user-cog" class="w-5 h-5 text-primary"></i>
+    System Profile
+  </h2>
+  <p class="text-slate-400 text-sm mt-1">
+    Configuration and real-time status of the energy optimization system
+  </p>
+</div>
+
+<!-- Main Card -->
+<div class="bg-card/90 backdrop-blur border border-slate-800 rounded-2xl p-6 shadow-xl">
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+    <!-- System Configuration -->
+    <div>
+      <h3 class="text-lg font-semibold flex items-center gap-2 mb-4 text-cyan-400">
+        <i data-lucide="settings" class="w-5 h-5"></i>
+        System Configuration
+      </h3>
+
+      <div class="space-y-3 text-sm">
+        <p>
+          <span class="text-slate-400">System Type:</span>
+          <span class="font-medium text-slate-200">Single Building</span>
+        </p>
+
+        <div>
+          <p class="text-slate-400 mb-2">Monitored Sub-Meters</p>
+          <ul class="space-y-2">
+            <li class="flex items-center gap-2">
+              <i data-lucide="utensils" class="w-4 h-4 text-sky-400"></i>
+              Kitchen
+            </li>
+            <li class="flex items-center gap-2">
+              <i data-lucide="wind" class="w-4 h-4 text-cyan-400"></i>
+              HVAC
+            </li>
+            <li class="flex items-center gap-2">
+              <i data-lucide="shirt" class="w-4 h-4 text-violet-400"></i>
+              Laundry
+            </li>
+            <li class="flex items-center gap-2">
+              <i data-lucide="monitor" class="w-4 h-4 text-emerald-400"></i>
+              Electronics
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live System Status -->
+    <div>
+      <h3 class="text-lg font-semibold flex items-center gap-2 mb-4 text-emerald-400">
+        <i data-lucide="activity" class="w-5 h-5"></i>
+        Live System Status
+      </h3>
+
+      <div
+        id="statusBox"
+        class="bg-slate-900/70 border border-slate-700 rounded-xl p-5 text-sm space-y-3 transition-all"
+      >
+        <div class="flex items-center gap-2 text-slate-400">
+          <i data-lucide="loader" class="w-4 h-4 animate-spin"></i>
+          Fetching live data…
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function refreshProfile() {
+  fetch("/api/latest", { cache: "no-store" })
+    .then(r => r.json())
+    .then(d => {
+      const box = document.getElementById("statusBox");
+
+      if (!d || !d.status) {
+        box.innerHTML = `
+          <p class="text-slate-400">No live data available.</p>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      const severityColor =
+        d.severity === "WARNING"
+          ? "text-red-400"
+          : "text-green-400";
+
+      const severityIcon =
+        d.severity === "WARNING"
+          ? "alert-octagon"
+          : "check-circle";
+
+      box.innerHTML = `
+        <p class="flex items-center gap-2">
+          <i data-lucide="pulse" class="w-4 h-4 text-primary"></i>
+          <span class="text-slate-400">Status:</span>
+          <span class="font-semibold">${d.status}</span>
+        </p>
+
+        <p class="flex items-center gap-2">
+          <i data-lucide="zap" class="w-4 h-4 text-amber-400"></i>
+          <span class="text-slate-400">Dominant Load:</span>
+          <span class="font-semibold">${d.dominant_load}</span>
+        </p>
+
+        <p class="flex items-center gap-2">
+          <i data-lucide="${severityIcon}" class="w-4 h-4 ${severityColor}"></i>
+          <span class="text-slate-400">Severity:</span>
+          <span class="font-semibold ${severityColor}">
+            ${d.severity || "INFO"}
+          </span>
+        </p>
+
+        <p class="text-xs text-slate-500 pt-2 flex items-center gap-2">
+          <i data-lucide="clock" class="w-3 h-3"></i>
+          Updated at ${new Date(d.timestamp).toLocaleTimeString()}
+        </p>
+      `;
+
+      lucide.createIcons();
+    })
+    .catch(() => {
+      document.getElementById("statusBox").innerHTML = `
+        <div class="flex items-center gap-2 text-red-400">
+          <i data-lucide="x-circle" class="w-4 h-4"></i>
+          Error fetching system data.
+        </div>
+      `;
+      lucide.createIcons();
+    });
+}
+
+// Refresh every 5 seconds
+setInterval(refreshProfile, 5000);
+refreshProfile();
+</script>
+<script>
+function refreshProfile() {
+  fetch("/api/latest", { cache: "no-store" })
+    .then(r => r.json())
+    .then(d => {
+      if (!d || !d.status) return;
+
+      statusBox.innerHTML = `
+        <p>Status: <b>${d.status}</b></p>
+        <p>Dominant Load: <b>${d.dominant_load}</b></p>
+        <p>Severity: <b>${d.severity}</b></p>
+        <p class="text-xs opacity-60">
+          Updated: ${new Date(d.timestamp).toLocaleTimeString()}
+        </p>
+      `;
+    });
+}
+</script>
+{% endblock %}

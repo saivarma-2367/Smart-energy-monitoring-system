@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="mb-8">
+  <h2 class="text-xl font-semibold flex items-center gap-2">
+    <i data-lucide="grid" class="w-5 h-5 text-primary"></i>
+    Energy Sub-Meters
+  </h2>
+  <p class="text-slate-400 text-sm mt-1">
+    Real-time monitoring of energy consumption across critical zones
+  </p>
+</div>
+
+<!-- Sub-Meter Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+  <!-- Kitchen -->
+  <a href="/device/kitchen"
+     class="group bg-card border border-slate-800 rounded-2xl p-6
+            hover:border-primary hover:shadow-lg transition-all duration-300">
+    <div class="flex items-center gap-4">
+      <div class="p-3 rounded-xl bg-sky-500/10 text-sky-400">
+        <i data-lucide="utensils" class="w-6 h-6"></i>
+      </div>
+      <div>
+        <h3 class="text-lg font-semibold group-hover:text-primary transition">
+          Kitchen
+        </h3>
+        <p class="text-slate-400 text-sm">
+          Fridge · Microwave · Induction
+        </p>
+      </div>
+    </div>
+  </a>
+
+  <!-- HVAC -->
+  <a href="/device/hvac"
+     class="group bg-card border border-slate-800 rounded-2xl p-6
+            hover:border-primary hover:shadow-lg transition-all duration-300">
+    <div class="flex items-center gap-4">
+      <div class="p-3 rounded-xl bg-cyan-500/10 text-cyan-400">
+        <i data-lucide="wind" class="w-6 h-6"></i>
+      </div>
+      <div>
+        <h3 class="text-lg font-semibold group-hover:text-primary transition">
+          HVAC
+        </h3>
+        <p class="text-slate-400 text-sm">
+          Air Conditioner · Ventilation
+        </p>
+      </div>
+    </div>
+  </a>
+
+  <!-- Laundry -->
+  <a href="/device/laundry"
+     class="group bg-card border border-slate-800 rounded-2xl p-6
+            hover:border-primary hover:shadow-lg transition-all duration-300">
+    <div class="flex items-center gap-4">
+      <div class="p-3 rounded-xl bg-violet-500/10 text-violet-400">
+        <i data-lucide="shirt" class="w-6 h-6"></i>
+      </div>
+      <div>
+        <h3 class="text-lg font-semibold group-hover:text-primary transition">
+          Laundry
+        </h3>
+        <p class="text-slate-400 text-sm">
+          Washing Machine
+        </p>
+      </div>
+    </div>
+  </a>
+
+  <!-- Electronics -->
+  <a href="/device/electronics"
+     class="group bg-card border border-slate-800 rounded-2xl p-6
+            hover:border-primary hover:shadow-lg transition-all duration-300">
+    <div class="flex items-center gap-4">
+      <div class="p-3 rounded-xl bg-emerald-500/10 text-emerald-400">
+        <i data-lucide="monitor" class="w-6 h-6"></i>
+      </div>
+      <div>
+        <h3 class="text-lg font-semibold group-hover:text-primary transition">
+          Electronics
+        </h3>
+        <p class="text-slate-400 text-sm">
+          TV · Laptop · Lighting
+        </p>
+      </div>
+    </div>
+  </a>
+
+</div>
+{% endblock %}

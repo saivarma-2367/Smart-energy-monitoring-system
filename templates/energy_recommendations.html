@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="mb-8">
+  <h2 class="text-xl font-semibold flex items-center gap-2">
+    <i data-lucide="alert-triangle" class="w-5 h-5 text-primary"></i>
+    Energy Recommendations
+  </h2>
+  <p class="text-slate-400 text-sm mt-1">
+    AI-driven insights based on real-time energy behavior
+  </p>
+</div>
+
+<!-- Recommendation Card -->
+<div id="contentBox"
+     class="bg-card border border-slate-800 rounded-2xl p-6 shadow
+            transition-all duration-300">
+  <p class="text-slate-400">Waiting for live energy data…</p>
+</div>
+
+<script>
+function loadRecommendation() {
+  fetch("/api/latest", { cache: "no-store" })
+    .then(r => r.json())
+    .then(d => {
+
+      const box = document.getElementById("contentBox");
+
+      // No data yet
+      if (!d || !d.status) {
+        box.innerHTML = `
+          <div class="flex items-center gap-3 text-slate-400">
+            <i data-lucide="loader" class="w-5 h-5 animate-spin"></i>
+            <p>No live data received yet.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      // NORMAL STATE
+      if (d.status === "NORMAL") {
+        box.innerHTML = `
+          <div class="flex items-start gap-4">
+            <div class="p-3 rounded-xl bg-green-500/10 text-green-400">
+              <i data-lucide="check-circle" class="w-6 h-6"></i>
+            </div>
+            <div>
+              <h3 class="text-lg font-semibold text-green-400">
+                System Operating Normally
+              </h3>
+              <p class="text-slate-300 mt-1">
+                ${d.message || "Energy usage is within safe limits."}
+              </p>
+            </div>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      // WARNING / OVERLOAD STATE
+      box.innerHTML = `
+        <div class="flex items-start gap-4">
+          <div class="p-3 rounded-xl bg-amber-500/10 text-amber-400">
+            <i data-lucide="zap" class="w-6 h-6"></i>
+          </div>
+
+          <div class="flex-1">
+            <h3 class="text-lg font-semibold text-amber-400 mb-2">
+              ${d.status.replace("_", " ")}
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-slate-300">
+              <p><b class="text-slate-400">Severity:</b> ${d.severity}</p>
+              <p><b class="text-slate-400">Dominant Load:</b> ${d.dominant_load}</p>
+              <p><b class="text-slate-400">Current Load:</b> ${d.current_load} W</p>
+              <p><b class="text-slate-400">Expected Load:</b> ${d.avg_expected_load} W</p>
+            </div>
+
+            <div class="mt-4 p-4 rounded-xl bg-slate-900 border border-slate-700">
+              <p class="text-amber-300 font-semibold mb-1 flex items-center gap-2">
+                <i data-lucide="corner-right-down" class="w-4 h-4"></i>
+                Recommended Action
+              </p>
+              <p class="text-slate-200">
+                ${d.action}
+                ${d.recommended_hour !== null ? `to ${d.recommended_hour}:00` : ""}
+              </p>
+              <p class="text-slate-400 text-sm mt-1">
+                ${d.message}
+              </p>
+            </div>
+          </div>
+        </div>
+      `;
+
+      lucide.createIcons();
+    })
+    .catch(() => {
+      document.getElementById("contentBox").innerHTML = `
+        <div class="flex items-center gap-3 text-red-400">
+          <i data-lucide="x-circle" class="w-5 h-5"></i>
+          <p>Error loading recommendations</p>
+        </div>
+      `;
+      lucide.createIcons();
+    });
+}
+
+// Auto-refresh every 5 seconds
+setInterval(loadRecommendation, 5000);
+loadRecommendation();
+</script>
+{% endblock %}
